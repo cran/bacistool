@@ -1,0 +1,16 @@
+3043cff583eb5f332d5b1cbf6a3a85e4 *DESCRIPTION
+0630eb1e2a7e62d406fb4d0fac72220c *NAMESPACE
+c02e0e8a70e8618f35ab3a73e90b7e92 *R/bacisCheckDIC.R
+b328c242ba43a0f3a159adfe9ba7d747 *R/bacisClassification.R
+a04fdb47c57bd690f041696ddf277d91 *R/bacisOneTrial.R
+0dee5efa76fb9192f111b7ce7fbd624b *R/bacisPlotClassification.R
+40dbb8183df8beadf9eec00d28ffd6e0 *R/bacisSubgroupPosterior.R
+cae243859e30db3ff9a4699699331b19 *R/bacisThetaPosterior.R
+5489a38747821788daf46fb5f9251032 *R/basisClassification.R
+b033fefc86c3b4e2e12251d572573f34 *R/internal.R
+27452f61e96caed31a1399a043ba4798 *man/bacisCheckDIC.Rd
+f5a36fc7f0e62eeed64da7498a1ffd6d *man/bacisClassification.Rd
+0f6839d44d189d7fb0344fae297f49dc *man/bacisOneTrial.Rd
+0fa8c85dba8e82a8caacf1d89b9ecf97 *man/bacisPlotClassification.Rd
+90cbb87ea6299641b31982fcf199ac50 *man/bacisSubgroupPosterior.Rd
+5f082617985a37871c3a743d7bd409bc *man/bacisThetaPosterior.Rd
