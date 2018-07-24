@@ -10,7 +10,8 @@ The bacisOneTrial function takes data and parameter values as input. It conducts
 \usage{
 
 bacisOneTrial(numGroup, tau1, tau2, phi1, phi2, tau4, alpha, beta,
-            AdaptiveCluster, cutOff, MCNum, nDat,xDat, cols, clusterCols, yLim)
+            clusterCutoff, finalCutoff, MCNum, nDat,xDat, cols,
+            clusterCols, yLim, seed)
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -23,15 +24,15 @@ bacisOneTrial(numGroup, tau1, tau2, phi1, phi2, tau4, alpha, beta,
   \item{tau4}{The precision prior for the center of the cluster in the information borrowing model.}
   \item{alpha}{Hyperprior parameters alpha to control the magnitude of information borrowing model.}
   \item{beta}{Hyperprior parameters beta to control the magnitude of the information borrowing model.}
-  \item{AdaptiveCluster}{The parameter to determine whether to use the adaptive clustering method.}
-  \item{cutOff}{The posterior cutoff value of the final inference for each subgroup.}
+  \item{clusterCutoff}{The cutoff value of the cluster classification. If its value is NA, adaptive classification is applied.}
+  \item{finalCutoff}{The posterior cutoff value of the final inference for each subgroup.}
   \item{MCNum}{The number of MCMC sampling iterations.}
   \item{nDat}{The vector of total sample sizes of all subgroups.}
   \item{xDat}{The vector of the response numbers of all subgroups.}
   \item{cols}{The color vector of all subgroups in the illustration.}
   \item{clusterCols}{The color vector of all clusters in the illustration.}
   \item{yLim}{The maximum Y-axis value in the illustration.}
-
+  \item{seed}{Random seed value. If its value is NA, a time dependent random seed is generated and applied.}
 
 
 
@@ -52,6 +53,8 @@ It also return a matrix including the following information of all subgroups:
   \item{Observed Resp.}{Observe response rates of subgroups.}
   \item{Number of response}{Number of responses of subgroups.}
   \item{Total sample size}{Total sample sizes of subgroups.}
+  \item{Effective sample size}{Effective
+  sample sizes of subgroups.}
 
 
 }
@@ -75,14 +78,15 @@ bacisOneTrial(
   tau4=0.1,
   alpha=50,
   beta=2,
-  AdaptiveCluster=FALSE,
-  cutOff=0.92,
-  MCNum=2000,
+  clusterCutoff = NA,
+  finalCutoff = 0.92,
+  MCNum=50000,
   nDat=c(25,25,25,25,25),
   xDat=c(2,3,7,6,10),
   cols=c("brown","red","orange","blue","green"),
   clusterCols=c(6,4),
-  yLim=22
+  yLim=22,
+  seed=100
 )
 }
 

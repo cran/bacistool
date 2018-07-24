@@ -11,20 +11,31 @@ bacisOneTrial <- function(numGroup = 5,
                           tau4 = 0.1,
                           alpha = 50,
                           beta = 2,
-                          AdaptiveCluster = FALSE,
-                          cutOff = 0.92,
+                          clusterCutoff = NA,
+                          finalCutoff = 0.92,
                           MCNum = 50000,
                           nDat = c(25, 25, 25, 25, 25),
                           xDat = c(2, 3, 7, 6, 10),
                           cols = c("brown", "red", "orange", "blue", "green"),
                           clusterCols = c(6, 4),
-                          yLim = 22)
+                          yLim = 22,
+                          seed = NA
+)
 
 {
+  if (is.na(seed))
+  {
+    set.seed( as.integer((as.double(Sys.time())*1000+Sys.getpid()) %% 2^31) )
+  }
+  else{
+    set.seed(seed)
+    #print(seed)
+  }
   if (is.na(tau1))
   {
     sd <- (logit(phi2) - logit(phi1)) / 6
     tau1 <- 1 / sd / sd
+    cat("The value of tau1 is set at:", tau1, "\n")
   }
   #print(tau1)
 
@@ -41,7 +52,7 @@ bacisOneTrial <- function(numGroup = 5,
     tau1 = tau1,
     tau2 = tau2,
     tau4 = tau4,
-    AdaptiveCluster = AdaptiveCluster,
+    clusterCutoff = clusterCutoff,
     MCNum = MCNum,
     xLim = xLim,
     yLim = yLim,
@@ -51,9 +62,11 @@ bacisOneTrial <- function(numGroup = 5,
   cutOffSel <- t$cutOffSel
   reject <- t[[2]]
   allProb2 <- t$allProb2
+  ESS <- t$allESS
   select <- t[[1]]
   cluster <- select > cutOffSel
-  decision <- reject > cutOff
+  decision <- reject > finalCutoff
+
   result <-
     rbind(
       reject,
@@ -64,7 +77,8 @@ bacisOneTrial <- function(numGroup = 5,
       round(t$allResp, 3),
       round(xDat / nDat, 3),
       xDat,
-      nDat
+      nDat,
+      ESS
     )
   rownames(result) <-
     c(
@@ -76,8 +90,10 @@ bacisOneTrial <- function(numGroup = 5,
       "Posterior Resp.",
       "Observed Resp.",
       "Number of response",
-      "Total sample size"
+      "Total sample size",
+      "Effective sample size"
     )
+
   colnames(result) <- c(1:numGroup)
   result <- round(result, 3)
   #print(result)

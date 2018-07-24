@@ -11,7 +11,7 @@ In this function, a trial computation is conducted based on the BaCIS model. It 
 \usage{
 
 bacisSubgroupPosterior(numGroup, tau1, tau2, phi1, phi2, tau4, alpha, beta,
-                      AdaptiveCluster, cutOff, MCNum, nDat, xDat)
+                      clusterCutoff, MCNum, nDat, xDat, seed)
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -24,12 +24,11 @@ bacisSubgroupPosterior(numGroup, tau1, tau2, phi1, phi2, tau4, alpha, beta,
   \item{tau4}{The precision prior for the center of the cluster in the information borrowing model.}
   \item{alpha}{Hyperprior parameters alpha to control the magnitude of information borrowing model.}
   \item{beta}{Hyperprior parameters beta to control the magnitude of the information borrowing model.}
-  \item{AdaptiveCluster}{The parameter to determine whether to use the adaptive clustering method.}
-  \item{cutOff}{The posterior cutoff value of the final inference for each subgroup.}
+  \item{clusterCutoff}{The cutoff value of the cluster classification. If its value is NA, adaptive classification is applied.}
   \item{MCNum}{The number of MCMC sampling iterations.}
   \item{nDat}{The vector of total sample sizes of all subgroups.}
   \item{xDat}{The vector of the response numbers of all subgroups.}
-
+  \item{seed}{Random seed value. If its value is NA, a time dependent random seed is generated and applied.}
 
 }
 
@@ -60,9 +59,8 @@ result<-bacisSubgroupPosterior(numGroup=5,
                                tau4=0.1,
                                alpha=50,
                                beta=20,
-                               AdaptiveCluster=TRUE,
-                               cutOff=0.92,
-                               MCNum=2000,
+                               clusterCutoff=NA,
+                               MCNum=5000,
                                nDat=c(25,25,25,25,25),
                                xDat=c(3,4,3,8,7))
 

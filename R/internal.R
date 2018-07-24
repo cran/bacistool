@@ -3,9 +3,7 @@
 #' @importFrom stats density rbeta
 
 
-
-# Write the BUGS model
-writeModel <- function()
+model1Str<-function()
 {
   mod1 <- "model
   {
@@ -29,15 +27,12 @@ writeModel <- function()
 
   gamma[1] <-logit(phi1)
   gamma[2] <-logit(phi2)
-  }"
+}"
+  return(mod1)
+}
 
-  filePath <-paste(tempdir(), "\\model1.txt", sep="")
-  #fileConn <- file("model1.txt")
-  fileConn <- file(filePath)
-  print(filePath)
-  writeLines(mod1, fileConn)
-  close(fileConn)
-
+model2Str<-function()
+{
   mod2 <- "model
   {
   for (i in 1:numGroups)
@@ -53,16 +48,8 @@ writeModel <- function()
   tau3 ~ dgamma(alpha, beta)
   }
   "
-
-  filePath <-paste(tempdir(), "\\model2.txt", sep="")
-  fileConn <- file(filePath)
-  writeLines(mod2, fileConn)
-  close(fileConn)
-
+  return(mod2)
 }
-
-
-
 
 
 
@@ -76,26 +63,40 @@ logit <- function(x)
   log(x / (1 - x))
 }
 
+
+compESS <- function(Prec, y, p.obs){
+  a <- 1
+  b <- 7
+  c <- 16 - Prec*(1+y)
+  d <- 12 - Prec*(1+y)*(1-y)
+  C <- rbind( c(0,0,-d), c(1,0,-c), c(0,1,-b) )
+  roots <- eigen(C, symmetric=FALSE, only.values=TRUE)$values
+  roots[roots<0] <- 0.0001
+  test <- abs( (y/roots)-p.obs )
+  o <- order( test, decreasing=FALSE )
+  return(roots[o[1]])
+}
+
+
 # Simulate one trial using the BaCIS model
 OneTrial<-
   function(xDat,
            nDat,
            numGroup,
            pp1,
-           pp2 = pp2,
-           alpha = alpha,
-           beta = beta,
-           tau1 = tau1,
-           tau2 = tau2,
+           pp2,
+           alpha,
+           beta,
+           tau1,
+           tau2,
            tau4,
-           AdaptiveCluster = FALSE,
-           MCNum = MCNum,
+           clusterCutoff = NA,
+           MCNum = 20000,
            xLim = 1.0,
            yLim = 22,
            cols = c("brown", "red", "orange", "blue", "green"),
            clusterCols = c(6, 4))
   {
-    writeModel()
     targetInd <- 1.5
 
     mydata <-
@@ -121,30 +122,43 @@ OneTrial<-
     }
     parameters <- c("theta", "p", "ind")
 
+    jSeed <- floor(runif(1, 1,10000))
 
-
-
-
-    jags <- jags.model(paste(tempdir(),'\\model1.txt',sep=""),
+    mText1 <- model1Str()
+    modelSpec1 <-textConnection(mText1)
+    jags <- jags.model(modelSpec1,
                        data = mydata,
                        n.chains = 1,
-                       n.adapt = MCNum / 5)
+                       n.adapt = MCNum / 5,quiet = TRUE,
+                       inits=list(.RNG.name= "base::Wichmann-Hill",
+                                  .RNG.seed= jSeed)
+                       )
 
     chain<-coda.samples(jags,
                          parameters,
                          n.iter=MCNum*5,
                          thin=5
     )
+    close(modelSpec1)
 
-    jags <- jags.model(paste(tempdir(),'\\model1.txt',sep=""),
+    jSeed <- floor(runif(1, 1,10000))
+    mText1 <- model1Str()
+    modelSpec1 <-textConnection(mText1)
+    jags <- jags.model(modelSpec1,
                        data = mydata,
                        n.chains = 5,
-                       n.adapt = MCNum / 5)
-    dic  <- dic.samples(jags,
+                       n.adapt = MCNum / 5,quiet = TRUE,
+                       inits=list(.RNG.name= "base::Wichmann-Hill",
+                                  .RNG.seed= jSeed)
+                       )
 
+    dic  <- dic.samples(jags,
                          n.iter=MCNum
     )
-    #print(dic)
+    close(modelSpec1)
+
+    value<-sum(dic[[1]])+sum(dic[[2]])
+    cat("DIC: ", value, "\n")
 
 
     #fit.result<-fit.r$Stats
@@ -194,18 +208,19 @@ OneTrial<-
       legendStr <- c(legendStr, paste("Arm", i))
     }
     legend("topright", legendStr, lwd = 2, col = cols)
-    Sys.sleep(4)
+    Sys.sleep(3)
 
 
     #cat("Adaptive Clustering: ", AdaptiveCluster, "\n")
 
     # Group Index
-    indThreshold <- 0.5
-    if (AdaptiveCluster == TRUE)
+    indThreshold <- clusterCutoff
+    if (is.na(clusterCutoff))
     {
       meanRate <- mean(xDat / nDat)
       delta <- meanRate - (pp1 + pp2) / 2
       indThreshold <- 1 - 1 / (1 + exp(-2 / (pp2 - pp1) * delta))
+      cat("The value of the threshold avlue for classification is: ", indThreshold,"\n")
     }
     #cat("Threshold value for classification: ", indThreshold, "\n")
     highGroup <- which(allInd > indThreshold)
@@ -249,18 +264,23 @@ OneTrial<-
         )
       }
       parameters <- c("p", "mu")
-
-      jags <- jags.model(paste(tempdir(),'\\model2.txt',sep=""),
+      jSeed <- floor(runif(1, 1,10000))
+      mText2 <- model2Str()
+      modelSpec2 <-textConnection(mText2)
+      jags <- jags.model(modelSpec2,
                          data = mydata,
                          n.chains = 1,
-                         n.adapt = MCNum / 5)
+                         n.adapt = MCNum / 5, quiet = TRUE,
+                         inits=list(.RNG.name= "base::Wichmann-Hill",
+                                    .RNG.seed= jSeed)
+                         )
 
       chain<-coda.samples(jags,
                           parameters,
                           n.iter=MCNum*5,
                           thin=5
       )
-
+      close(modelSpec2)
       chain<-chain[[1]]
 
       #print(chain)
@@ -311,11 +331,16 @@ OneTrial<-
         )
       }
       parameters <- c("p", "mu")
-
-      jags <- jags.model(paste(tempdir(),'\\model2.txt',sep=""),
+      jSeed <- floor(runif(1, 1,10000))
+      mText2 <- model2Str()
+      modelSpec2 <-textConnection(mText2)
+      jags <- jags.model(modelSpec2,
                          data = mydata,
                          n.chains = 1,
-                         n.adapt = MCNum / 5)
+                         n.adapt = MCNum / 5, quiet = TRUE,
+                         inits=list(.RNG.name= "base::Wichmann-Hill",
+                                    .RNG.seed= jSeed)
+                         )
 
       chain<-coda.samples(jags,
                           parameters,
@@ -323,6 +348,7 @@ OneTrial<-
                           thin=5
       )
 
+      close(modelSpec2)
 
       chain<-chain[[1]]
       for (i in 1:length(lowGroup)) {
@@ -351,12 +377,14 @@ OneTrial<-
     xObs <- xDat / nDat
     rejectProb <- c()
     allProb2 <- c()
+    allESS <- c()
     for (i in 1:numGroup) {
       p.sampled <- sampledP[, i]
       allResp <- c(allResp, mean(p.sampled))
       prob <- sum(p.sampled > pp1) / length(p.sampled)
       prob2 <- sum(p.sampled > pp2) / length(p.sampled)
-
+      size <- compESS(1/var(p.sampled),xDat[i], xObs[i])
+      allESS <- c(allESS, size)
 
       rejectProb <- c(rejectProb, prob)
       allProb2 <- c(allProb2, prob2)
@@ -408,7 +436,8 @@ OneTrial<-
         allResp = allResp,
         dic = dic,
         cutOffSel = indThreshold,
-        allProb2 = allProb2
+        allProb2 = allProb2,
+        allESS = allESS
       )
     )
   }
@@ -422,13 +451,13 @@ ModelOne <-
            nDat,
            numGroup,
            pp1,
-           pp2 = pp2,
-           tau1 = tau1,
-           tau2 = tau2,
-           AdaptiveCluster = FALSE,
-           MCNum = MCNum)
+           pp2,
+           tau1,
+           tau2,
+           clusterCutoff,
+           MCNum = 20000)
   {
-    writeModel()
+
     targetInd <- 1.5
 
     mydata <-
@@ -454,28 +483,43 @@ ModelOne <-
     }
     parameters <- c("theta", "p", "ind")
 
-    jags <- jags.model(paste(tempdir(),'\\model1.txt',sep=""),
+    #jags <- jags.model(paste(tempdir(),'\\model1.txt',sep=""),
+    jSeed <- floor(runif(1, 1,10000))
+    mText1 <- model1Str()
+    modelSpec1 <-textConnection(mText1)
+    jags <- jags.model(modelSpec1,
                        data = mydata,
                        n.chains = 1,
-                       n.adapt = MCNum / 5)
+                       n.adapt = MCNum / 5,
+                       quiet = TRUE,
+                       inits=list(.RNG.name= "base::Wichmann-Hill",
+                                  .RNG.seed= jSeed)
+                       )
 
     chain<-coda.samples(jags,
                         parameters,
                         n.iter=MCNum*5,
                         thin=5
     )
+    close(modelSpec1)
 
 
 
     rejectProb <- c()
-    jags <- jags.model(paste(tempdir(),'\\model1.txt',sep=""),
+    jSeed <- floor(runif(1, 1,10000))
+    mText1 <- model1Str()
+    modelSpec1 <-textConnection(mText1)
+    jags <- jags.model(modelSpec1,
                        data = mydata,
                        n.chains = 5,
-                       n.adapt = MCNum / 5)
+                       n.adapt = MCNum / 5,quiet = TRUE,
+                       inits=list(.RNG.name= "base::Wichmann-Hill",
+                                  .RNG.seed= jSeed)
+                       )
     dic  <- dic.samples(jags,
-
                         n.iter=MCNum
     )
+    close(modelSpec1)
     probTheta <- c()
     allInd <- c()
     allResp <- c()
@@ -510,12 +554,13 @@ ModelOne <-
     #cat("Adaptive Clustering: ", AdaptiveCluster, "\n")
 
     # Group Index
-    indThreshold <- 0.5
-    if (AdaptiveCluster == TRUE)
+    indThreshold <- clusterCutoff
+    if (is.na(clusterCutoff))
     {
       meanRate <- mean(xDat / nDat)
       delta <- meanRate - (pp1 + pp2) / 2
       indThreshold <- 1 - 1 / (1 + exp(-2 / (pp2 - pp1) * delta))
+      cat("The value of the threshold avlue for classification is: ", indThreshold,"\n")
     }
     #cat("Threshold value for classification: ", indThreshold, "\n")
     highGroup <- which(allInd > indThreshold)
@@ -532,16 +577,16 @@ SubgroupPost <-
            nDat,
            numGroup,
            pp1,
-           pp2 = pp2,
-           alpha = alpha,
-           beta = beta,
-           tau1 = tau1,
-           tau2 = tau2,
+           pp2,
+           alpha,
+           beta,
+           tau1,
+           tau2,
            tau4,
-           AdaptiveCluster = FALSE,
-           MCNum = MCNum)
+           clusterCutoff,
+           MCNum = 20000)
   {
-    writeModel()
+
     targetInd <- 1.5
 
     mydata <-
@@ -567,17 +612,23 @@ SubgroupPost <-
     }
     parameters <- c("theta", "p", "ind")
 
-
-    jags <- jags.model(paste(tempdir(),'\\model1.txt',sep=""),
+    jSeed <- floor(runif(1, 1,10000))
+    mText1 <- model1Str()
+    modelSpec1 <-textConnection(mText1)
+    jags <- jags.model(modelSpec1,
                        data = mydata,
                        n.chains = 1,
-                       n.adapt = MCNum / 5)
+                       n.adapt = MCNum / 5,quiet = TRUE,
+                       inits=list(.RNG.name= "base::Wichmann-Hill",
+                                  .RNG.seed= jSeed)
+                       )
 
     chain<-coda.samples(jags,
                         parameters,
                         n.iter=MCNum*5,
                         thin=5
     )
+    close(modelSpec1)
 
 
 
@@ -615,12 +666,13 @@ SubgroupPost <-
     #cat("Adaptive Clustering: ", AdaptiveCluster, "\n")
 
     # Group Index
-    indThreshold <- 0.5
-    if (AdaptiveCluster == TRUE)
+    indThreshold <- clusterCutoff
+    if (is.na(clusterCutoff))
     {
       meanRate <- mean(xDat / nDat)
       delta <- meanRate - (pp1 + pp2) / 2
       indThreshold <- 1 - 1 / (1 + exp(-2 / (pp2 - pp1) * delta))
+      cat("The value of the threshold avlue for classification is: ", indThreshold,"\n")
     }
     #cat("Threshold value for classification: ", indThreshold, "\n")
     highGroup <- which(allInd > indThreshold)
@@ -662,17 +714,23 @@ SubgroupPost <-
              tau3 = alpha / beta)
       }
       parameters <- c("p", "mu")
-
-      jags <- jags.model(paste(tempdir(),'\\model2.txt',sep=""),
+      jSeed <- floor(runif(1, 1,10000))
+      mText2 <- model2Str()
+      modelSpec2 <-textConnection(mText2)
+      jags <- jags.model(modelSpec2,
                          data = mydata,
                          n.chains = 1,
-                         n.adapt = MCNum / 5)
+                         n.adapt = MCNum / 5,quiet = TRUE,
+                         inits=list(.RNG.name= "base::Wichmann-Hill",
+                                    .RNG.seed= jSeed)
+                         )
 
       chain<-coda.samples(jags,
                           parameters,
                           n.iter=MCNum*5,
                           thin=5
       )
+      close(modelSpec2)
 
 
 
@@ -719,11 +777,16 @@ SubgroupPost <-
              tau3 = alpha / beta)
       }
       parameters <- c("p", "mu")
-
-      jags <- jags.model(paste(tempdir(),'\\model2.txt',sep=""),
+      jSeed <- floor(runif(1, 1,10000))
+      mText2 <- model2Str()
+      modelSpec2 <-textConnection(mText2)
+      jags <- jags.model(modelSpec2,
                          data = mydata,
                          n.chains = 1,
-                         n.adapt = MCNum / 5)
+                         n.adapt = MCNum / 5,quiet = TRUE,
+                         inits=list(.RNG.name= "base::Wichmann-Hill",
+                                    .RNG.seed= jSeed)
+                         )
 
       chain<-coda.samples(jags,
                           parameters,
@@ -731,6 +794,7 @@ SubgroupPost <-
                           thin=5
       )
 
+      close(modelSpec2)
       chain<-chain[[1]]
       for (i in 1:length(lowGroup)) {
         #p<-samplesSample(paste("p[",i,"]",sep=""))

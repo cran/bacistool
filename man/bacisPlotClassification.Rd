@@ -11,7 +11,7 @@ The classification model is conducted based on the BaCIS method and the posterio
 \usage{
 
 bacisPlotClassification(numGroup, tau1, tau2, phi1, phi2,
-                        AdaptiveCluster, MCNum, nDat, xDat, cols)
+                        clusterCutoff, MCNum, nDat, xDat, cols, seed)
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -22,12 +22,12 @@ bacisPlotClassification(numGroup, tau1, tau2, phi1, phi2,
   \item{tau2}{The precision prior for the latent variable for the classification.}
   \item{phi1}{Center for the low response rate cluster.}
   \item{phi2}{Center for the high response rate cluster.}
-  \item{AdaptiveCluster}{The parameter to determine whether to use the adaptive clustering method.}
+  \item{clusterCutoff}{The cutoff value of the cluster classification. If its value is NA, adaptive classification is applied.}
   \item{MCNum}{The number of MCMC sampling iterations.}
   \item{nDat}{The vector of total sample sizes of all subgroups.}
   \item{xDat}{The vector of the response numbers of all subgroups.}
   \item{cols}{The color vector of all subgroups in the illustration.}
-
+  \item{seed}{Random seed value. If its value is NA, a time dependent random seed is generated and applied.}
 }
 
 \value{
@@ -52,8 +52,8 @@ bacisPlotClassification(numGroup=5,
                             tau1=NA,
                             tau2=.001,
                             phi1=0.1, phi2=0.3,
-                            AdaptiveCluster=TRUE,
-                            MCNum=500,
+                            clusterCutoff=NA,
+                            MCNum=5000,
                             nDat=c(25,25,25,25,25),
                             xDat=c(3,4,3,8,7),
                             cols = c("brown", "red", "orange", "blue", "green")
