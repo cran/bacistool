@@ -1,9 +1,4 @@
-#' @export
-#' @importFrom rjags jags.model coda.samples dic.samples
-#' @importFrom graphics legend lines par plot points
-#' @importFrom stats density rbeta
 
-# Get DIC value
 bacisCheckDIC<- function(numGroup = 5,
                          tau1 = NA,
                          tau2 = .001,

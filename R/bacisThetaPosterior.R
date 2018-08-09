@@ -1,7 +1,3 @@
-#' @export
-#' @importFrom rjags jags.model coda.samples dic.samples
-#' @importFrom graphics legend lines par plot points
-#' @importFrom stats density rbeta
 
 # Posterior distribution of Theta
 bacisThetaPosterior<- function(numGroup = 5,
