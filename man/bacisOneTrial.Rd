@@ -5,7 +5,7 @@
 Running one trial computation based on the BaCIS model.
 }
 \description{
-The bacisOneTrial function takes data and parameter values as input. It conducts a trial computation based on the BaCIS model.  It calls the OpenBUGS for the Bayesian MCMC sampling for the subgroup classification and hierarchical model information borrowing. It illustrates plots of the classficaiton results and the posterior response distributions of subgroups, and returns the inference results.
+The bacisOneTrial function takes data and parameter values as input. It conducts a trial computation based on the BaCIS model.  It calls the JAGS for the Bayesian MCMC sampling for the subgroup classification and hierarchical model information borrowing. It illustrates plots of the classficaiton results and the posterior response distributions of subgroups, and returns the inference results.
 }
 \usage{
 

@@ -1,5 +1,5 @@
 
-#library(R2OpenBUGS)
+
 # Clustering classification
 bacisClassification<- function(numGroup = 5,
                                tau1 = NA,

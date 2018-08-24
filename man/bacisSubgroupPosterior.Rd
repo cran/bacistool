@@ -6,7 +6,7 @@
 Compute the posterior distribution of response rates of subgroups using the BaCIS method.
 }
 \description{
-In this function, a trial computation is conducted based on the BaCIS model. It calls the OpenBUGS for the Bayesian MCMC sampling for the subgroup classification and hierarchical model information borrowing. The response rate posterior distributions of subgroups are returned from this function.
+In this function, a trial computation is conducted based on the BaCIS model. It calls the JAGS for the Bayesian MCMC sampling for the subgroup classification and hierarchical model information borrowing. The response rate posterior distributions of subgroups are returned from this function.
 }
 \usage{
 

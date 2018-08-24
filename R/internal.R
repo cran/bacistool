@@ -217,8 +217,8 @@ OneTrial<-
       meanRate <- mean(xDat / nDat)
       delta <- meanRate - (pp1 + pp2) / 2
       indThreshold <- 1 - 1 / (1 + exp(-2 / (pp2 - pp1) * delta))
-      cat("The value of the threshold avlue for classification is: ", indThreshold,"\n")
     }
+    cat("The value of the threshold value for classification is: ", indThreshold,"\n")
     #cat("Threshold value for classification: ", indThreshold, "\n")
     highGroup <- which(allInd > indThreshold)
     lowGroup <- which(allInd <= indThreshold)
@@ -557,8 +557,8 @@ ModelOne <-
       meanRate <- mean(xDat / nDat)
       delta <- meanRate - (pp1 + pp2) / 2
       indThreshold <- 1 - 1 / (1 + exp(-2 / (pp2 - pp1) * delta))
-      cat("The value of the threshold avlue for classification is: ", indThreshold,"\n")
     }
+    cat("The value of the threshold value for classification is: ", indThreshold,"\n")
     #cat("Threshold value for classification: ", indThreshold, "\n")
     highGroup <- which(allInd > indThreshold)
     lowGroup <- which(allInd <= indThreshold)
@@ -669,8 +669,8 @@ SubgroupPost <-
       meanRate <- mean(xDat / nDat)
       delta <- meanRate - (pp1 + pp2) / 2
       indThreshold <- 1 - 1 / (1 + exp(-2 / (pp2 - pp1) * delta))
-      cat("The value of the threshold avlue for classification is: ", indThreshold,"\n")
     }
+    cat("The value of the threshold value for classification is: ", indThreshold,"\n")
     #cat("Threshold value for classification: ", indThreshold, "\n")
     highGroup <- which(allInd > indThreshold)
     lowGroup <- which(allInd <= indThreshold)
